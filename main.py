@@ -121,6 +121,43 @@ class Bird(pg.sprite.Sprite):
         screen.blit(self.image, self.rect)
 
 
+class Bomb(pg.sprite.Sprite):
+    """
+    爆弾に関するクラス
+    """
+    colors = [(255, 0, 0), (0, 255, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)]
+
+    def __init__(self, emy: "Enemy", bird: Bird):
+        """
+        爆弾円Surfaceを生成する
+        引数1 emy：爆弾を投下する敵機
+        引数2 bird：攻撃対象のこうかとん
+        """
+        super().__init__()
+        rad = random.randint(10, 50)  # 爆弾円の半径：10以上50以下の乱数
+        self.image = pg.Surface((2*rad, 2*rad))
+        color = random.choice(__class__.colors)  # 爆弾円の色：クラス変数からランダム選択
+        pg.draw.circle(self.image, color, (rad, rad), rad)
+        self.image.set_colorkey((0, 0, 0))
+        self.rect = self.image.get_rect()
+        # 爆弾を投下するemyから見た攻撃対象のbirdの方向を計算
+        self.vx, self.vy = calc_orientation(emy.rect, bird.rect)  
+        self.rect.centerx = emy.rect.centerx
+        self.rect.centery = emy.rect.centery+emy.rect.height//2
+        self.speed = 6
+
+        self.state = "active"
+
+    def update(self):
+        """
+        爆弾を速度ベクトルself.vx, self.vyに基づき移動させる
+        引数 screen：画面Surface
+        """
+        self.rect.move_ip(self.speed*self.vx, self.speed*self.vy)
+        if check_bound(self.rect) != (True, True):
+            self.kill()
+
+
 class Beam(pg.sprite.Sprite):
     """
     ビームに関するクラス
@@ -248,6 +285,7 @@ def main():
     bg_img = pg.image.load(f"fig/pg_bg.jpg")
 
     bird = Bird(3, (900, 400))
+    bombs = pg.sprite.Group()
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
@@ -272,6 +310,11 @@ def main():
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             emys.add(Enemy())
 
+        for emy in emys:
+            if emy.state == "stop" and tmr%emy.interval == 0:
+                # 敵機が停止状態に入ったら，intervalに応じて爆弾投下
+                bombs.add(Bomb(emy, bird))
+        
         for emy in pg.sprite.groupcollide(emys, beams, True, True).keys():  # ビームと衝突した敵機リスト
             exps.add(Explosion(emy, 100))  # 爆発エフェクト
             bird.change_img(6, screen)  # こうかとん喜びエフェクト
@@ -295,6 +338,8 @@ def main():
         beams.draw(screen)
         emys.update()
         emys.draw(screen)
+        bombs.update()
+        bombs.draw(screen)
         exps.update()
         exps.draw(screen)
         life.update(screen)
