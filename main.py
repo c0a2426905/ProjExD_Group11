@@ -207,6 +207,33 @@ class Enemy(pg.sprite.Sprite):
             self.state = "stop"
         self.rect.move_ip(self.vx, self.vy)
 
+class Boss(Enemy):
+    """
+    ボス敵機に関するクラス
+    """
+    
+    def __init__(self):
+        super().__init__()
+        self.image = pg.transform.rotozoom(pg.image.load("fig/boss.png"), 0, 4)
+        self.rect = self.image.get_rect()
+        self.rect.center = WIDTH//2, -200
+        self.vx, self.vy = 0, +3
+        self.bound = HEIGHT//4  # 停止位置
+        self.state = "down"  # 降下状態or停止状態
+        self.interval = 30  # 爆弾投下インターバル
+
+    def update(self):
+        """
+        敵機を速度ベクトルself.vyに基づき移動（降下）させる
+        ランダムに決めた停止位置_boundまで降下したら，_stateを停止状態に変更する
+        引数 screen：画面Surface
+        """
+        if self.rect.centery > self.bound:
+            self.vy = 0
+            self.state = "stop"
+        self.rect.move_ip(self.vx, self.vy)
+        
+
 
 def main():
     pg.display.set_caption("真！こうかとん無双")
@@ -236,6 +263,9 @@ def main():
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             emys.add(Enemy())
+
+        if tmr%1000 == 0 and tmr != 0:  # 1000フレームに1回，ボス敵機を出現させる
+            emys.add(Boss())
 
         for emy in pg.sprite.groupcollide(emys, beams, True, True).keys():  # ビームと衝突した敵機リスト
             exps.add(Explosion(emy, 100))  # 爆発エフェクト
