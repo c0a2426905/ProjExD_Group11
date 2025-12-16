@@ -211,7 +211,12 @@ class Enemy(pg.sprite.Sprite):
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
-    bg_img = pg.image.load(f"fig/pg_bg.jpg")
+
+    #追加機能(背景画像スクロール機能)
+    # 背景画像を読み込む
+    bg_img = pg.image.load(f"fig/haikei.png")
+    bg_img = pg.transform.scale(bg_img, (WIDTH, HEIGHT))
+    bg_img2 = pg.transform.flip(bg_img, False, True)
 
     bird = Bird(3, (900, 400))
     beams = pg.sprite.Group()
@@ -232,7 +237,12 @@ def main():
 
             key_lst = pg.key.get_pressed()              
 
-        screen.blit(bg_img, [0, 0])
+        #追加機能(背景画像スクロール機能)
+        y = tmr % (HEIGHT * 2)
+        # 背景を下にスクロール
+        screen.blit(bg_img,  (0, y))
+        screen.blit(bg_img2, (0, y - HEIGHT))
+        screen.blit(bg_img,  (0, y - HEIGHT * 2))
 
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             emys.add(Enemy())
