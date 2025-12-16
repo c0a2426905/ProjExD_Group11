@@ -223,8 +223,10 @@ class Enemy(pg.sprite.Sprite):
         self.vx, self.vy = 0, +6
         self.bound = random.randint(50, HEIGHT//2)  # 停止位置
         self.state = "down"  # 降下状態or停止状態
-        self.interval = 20  # 爆弾投下インターバル
+        self.interval = 50  # 爆弾投下インターバル
         self.bullet_img = __class__.bullet_img
+        self.hp = 1 # 敵機の体力
+
     def update(self):
         """
         敵機を速度ベクトルself.vyに基づき移動（降下）させる
@@ -235,6 +237,8 @@ class Enemy(pg.sprite.Sprite):
             self.vy = 0
             self.state = "stop"
         self.rect.move_ip(self.vx, self.vy)
+        if self.hp <= 0:
+            self.kill()
 
     def shoot(self, bird: Bird) -> Bullet:
         """
@@ -259,6 +263,7 @@ class Boss(Enemy):
         self.bound = HEIGHT//4  # 停止位置
         self.state = "down"  # 降下状態or停止状態
         self.interval = 5  # 爆弾投下インターバル
+        self.hp = 20 # ボス敵機の体力
 
         self.bullet_imgs = [pg.image.load("fig/bullet1.png")]
 
@@ -272,6 +277,8 @@ class Boss(Enemy):
             self.vy = 0
             self.state = "stop"
         self.rect.move_ip(self.vx, self.vy)
+        if self.hp <= 0:
+            self.kill()
 
     def shoot(self, bird: Bird) -> Bullet:
         """
@@ -326,8 +333,11 @@ def main():
             if emy.state == "stop" and tmr % emy.interval == 0:
                 bullets.add(emy.shoot(bird))
 
-        for emy in pg.sprite.groupcollide(emys, beams, True, True).keys():  # ビームと衝突した敵機リスト
+        for emy in pg.sprite.groupcollide(emys, beams, False, True).keys():  # ビームと衝突した敵機リスト
             exps.add(Explosion(emy, 100))  # 爆発エフェクト
+            emy.hp -= 1  # 敵機の体力を1減少
+            if emy.hp <= 0:
+                emy.kill()
             bird.change_img(6, screen)  # こうかとん喜びエフェクト
 
         for bullet in pg.sprite.spritecollide(bird, bullets, True):
