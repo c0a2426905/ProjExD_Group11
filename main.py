@@ -208,6 +208,40 @@ class Enemy(pg.sprite.Sprite):
         self.rect.move_ip(self.vx, self.vy)
 
 
+class Life(pg.sprite.Sprite):
+    """
+    ライフに関するクラス
+    """
+    def __init__(self):
+        self.font = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 50)
+        self.color = (0, 0, 0)
+        self.value = 3
+        self.invisible_time = 0
+        self.image = self.font.render(f"残りライフ：{self.value}", 0, self.color)
+        self.rect = self.image.get_rect()
+        self.rect.center = 900, 600
+
+    def decrease(self):
+        """
+        残りライフを減らす関数
+        残りライフが0より上でかつ残り無敵時間が0秒以下ならライフを一つ減らす
+        """
+        if self.invisible_time <= 0 and self.value > 0:
+            self.value -= 1
+            self.invisible_time = 100  # 約1.5秒から2秒の無敵時間
+            self.image = self.font.render(f"残りライフ：{self.value}", 0, self.color)
+            self.rect = self.image.get_rect()
+            self.rect.center = 900, 600
+            return True
+        return False
+    
+    def update(self, screen: pg.Surface):
+        if self.invisible_time > 0:
+            self.invisible_time -= 1
+        self.image = self.font.render(f"残りライフ：{self.value}", 0, self.color)
+        screen.blit(self.image, self.rect)
+
+
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -217,6 +251,7 @@ def main():
     beams = pg.sprite.Group()
     exps = pg.sprite.Group()
     emys = pg.sprite.Group()
+    life = Life()
 
 
     tmr = 0
@@ -241,6 +276,20 @@ def main():
             exps.add(Explosion(emy, 100))  # 爆発エフェクト
             bird.change_img(6, screen)  # こうかとん喜びエフェクト
         
+        for bomb in pg.sprite.spritecollide(bird, bombs, True):  # こうかとんと衝突した爆弾リスト
+            if getattr(bomb,"state","active") == "active":
+                bird.change_img(8, screen)  # こうかとん悲しみエフェクト
+                life.decrease()
+                pg.display.update()
+            if life.value <= 0:
+                fonto = pg.font.SysFont("hgp創英角ﾎﾟｯﾌﾟ体", 80)
+                txt = fonto.render("ゲームオーバー", True, (255, 0, 0))
+                screen.blit(txt, [WIDTH//2-250, HEIGHT//2])
+                pg.display.update()
+                time.sleep(1)
+                return
+
+        
         bird.update(key_lst, screen)
         beams.update()
         beams.draw(screen)
@@ -248,6 +297,7 @@ def main():
         emys.draw(screen)
         exps.update()
         exps.draw(screen)
+        life.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
