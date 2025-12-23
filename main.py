@@ -322,7 +322,7 @@ class Menu:
         """
         self.screen.fill(0)
 
-        title_surf = self.font_title.render("こうかとんゼビウスゲーム",True,(255,255,255))
+        title_surf = self.font_title.render("こうかとんシューティング",True,(255,255,255))
         msg_surf = self.font_msg.render("SPACEキーでゲーム開始",True,(255,255,255))
 
         title_rect = title_surf.get_rect(center = (WIDTH//2,HEIGHT//2 - 50))
