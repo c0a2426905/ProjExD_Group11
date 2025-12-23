@@ -462,7 +462,7 @@ def main():
         if tmr%200 == 0:  # 200フレームに1回，敵機を出現させる
             emys.add(Enemy())
 
-        if tmr == 1000:  # 1000フレームでボス登場
+        if tmr % 1000 == 0:  # 1000フレームでボス登場
             emys.add(Boss())
 
         for emy in emys:
