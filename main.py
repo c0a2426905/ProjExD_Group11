@@ -258,7 +258,7 @@ class Life(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.center = 900, 600
 
-    def decrease(self):
+    def decrease(self) -> bool:
         """
         残りライフを減らす関数
         残りライフが0より上でかつ残り無敵時間が0秒以下ならライフを一つ減らす
