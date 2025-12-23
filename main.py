@@ -307,6 +307,31 @@ class Boss(Enemy):
         return bullets   
 
 
+class Menu:
+    """
+    メニュー画面に関するクラス
+    """
+    def __init__(self,screen:pg.Surface):
+        self.screen = screen
+        self.font_title = pg.font.Font("font/ipaexg.ttf",80)
+        self.font_msg = pg.font.Font("font/ipaexg.ttf",40)
+
+    def draw(self):
+        """
+        メニュー画面を描画する
+        """
+        self.screen.fill(0)
+
+        title_surf = self.font_title.render("こうかとんゼビウスゲーム",True,(255,255,255))
+        msg_surf = self.font_msg.render("SPACEキーでゲーム開始",True,(255,255,255))
+
+        title_rect = title_surf.get_rect(center = (WIDTH//2,HEIGHT//2 - 50))
+        msg_rect = msg_surf.get_rect(center = (WIDTH//2,HEIGHT//2 + 100))
+
+        self.screen.blit(title_surf,title_rect)
+        self.screen.blit(msg_surf,msg_rect)
+
+
 def main():
     pg.display.set_caption("真！こうかとん無双")
     screen = pg.display.set_mode((WIDTH, HEIGHT))
@@ -316,6 +341,9 @@ def main():
     bg_img = pg.image.load(f"fig/haikei.png")
     bg_img = pg.transform.scale(bg_img, (WIDTH, HEIGHT))
     bg_img2 = pg.transform.flip(bg_img, False, True)
+
+    menu = Menu(screen)
+    game_mode = "MENU"
 
     bird = Bird(3, (900, 400))
     beams = pg.sprite.Group()
@@ -327,14 +355,23 @@ def main():
     tmr = 0
     clock = pg.time.Clock()
     while True:
-        key_lst = pg.key.get_pressed()
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return 0
+            
             if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-                beams.add(Beam(bird, 0))
+                if game_mode == "MENU":
+                    game_mode = "GAME"                             
+                elif game_mode == "GAME":
+                    beams.add(Beam(bird, 0))    
                     
-            key_lst = pg.key.get_pressed()              
+        if game_mode == "MENU":
+                menu.draw()
+                pg.display.update()
+                clock.tick(50)
+                continue
+
+        key_lst = pg.key.get_pressed()              
 
         #追加機能(背景画像スクロール機能)
         y = tmr % (HEIGHT * 2)
